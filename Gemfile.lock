@@ -1,0 +1,15 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    docopt (0.5.0)
+    sqlite3 (1.3.10)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  docopt
+  sqlite3
+
+BUNDLED WITH
+   1.10.6
