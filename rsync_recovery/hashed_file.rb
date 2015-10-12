@@ -31,14 +31,23 @@ module RsyncRecovery
 
     def uniq?
       fail 'Cannot check for uniqueness without a sha' unless sha
-      Database.query('SELECT * FROM files WHERE sha = ?', sha).empty?
+      Database.query('SELECT * FROM files WHERE name = ? and path = ? and sha = ?', name, path, sha).empty?
+    end
+
+    def hash!
+      @sha = Digest::SHA2.file(File.join path, name).hexdigest
     end
 
     def save
-      puts "stashing #{name}"
       Database.query(<<-SQL, hostname, path, name, sha)
         INSERT INTO files (hostname, path, name, sha) VALUES (?, ?, ?, ?)
       SQL
+    end
+
+    def save!
+      if uniq?
+        save
+      end
     end
 
     def inspect

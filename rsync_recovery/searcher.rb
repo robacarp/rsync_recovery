@@ -16,7 +16,6 @@ module RsyncRecovery
           hostname: hostname,
           path: File.dirname( File.absolute_path(file) ),
           name: File.basename(file),
-          sha: Digest::SHA2.file(file).hexdigest
         )
       end
 

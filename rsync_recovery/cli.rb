@@ -16,10 +16,28 @@ module RsyncRecovery
       end
 
       def search
+        puts "Rsync Recovery Analyzing..."
+        print "\0337" # save cursor position
         Database.instance filename: Options.settings[:database]
         searcher = Searcher.new
         searcher.search directory: Options.references[0]
-        searcher.files.each(&:save)
+        count = duplicate = 0
+        searcher.files.each do |file|
+          print "Indexing: #{File.join(file.path, file.name)}"
+          file.hash!
+          count += 1
+          if file.uniq?
+            file.save
+          else
+            duplicate += 1
+          end
+
+          print "\0338" # restore cursor position
+          print "\0337" # save cursor position
+          print "\033[2K" # clear line from cursor
+        end
+
+        puts "Indexed #{count} files. Already indexed #{duplicate} files."
       end
 
       def analyze
