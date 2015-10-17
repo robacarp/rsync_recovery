@@ -1,5 +1,5 @@
 source 'http://rubygems.org'
 
-gem 'docopt'
+gem 'sequel'
 gem 'sqlite3'
 

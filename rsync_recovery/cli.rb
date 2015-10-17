@@ -6,9 +6,11 @@ module RsyncRecovery
     class << self
       def run
         Options.parse
+        Database.instance filename: Options.settings[:database]
 
+        require_relative 'hashed_file'
         search   if Options.flagged? :search
-        analyze if Options.flagged? :analyze
+        analyze  if Options.flagged? :analyze
         merge    if Options.flagged? :merge
 
       rescue RuntimeError => e
@@ -18,7 +20,6 @@ module RsyncRecovery
       def search
         puts "Rsync Recovery Analyzing..."
         print "\0337" # save cursor position
-        Database.instance filename: Options.settings[:database]
         searcher = Searcher.new
         searcher.search directory: Options.references[0]
         count = duplicate = 0
@@ -26,7 +27,8 @@ module RsyncRecovery
           print "Indexing: #{File.join(file.path, file.name)}"
           file.hash!
           count += 1
-          if file.uniq?
+
+          if file.valid?
             file.save
           else
             duplicate += 1
@@ -41,17 +43,13 @@ module RsyncRecovery
       end
 
       def analyze
-        base = Database.instance filename: Options.settings[:database]
-        grouped_by_sha = base.hashy_query [:sha, :count], <<-SQL
-          SELECT sha, count(*) FROM files
-          GROUP BY sha
-          HAVING count(*) > 1
-        SQL
+        grouped_by_sha = HashedFile.group_and_count(:sha).having('count(*) > 1').all
 
         grouped_by_sha.map! do |row|
-          row.delete :count
-          row[:files] = HashedFile.from_sha row[:sha]
-          row
+          {
+            sha: row.sha.to_s,
+            files: HashedFile.where(sha: row.sha).all
+          }
         end
 
         grouped_by_sha.each do |group|
