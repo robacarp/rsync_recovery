@@ -9,9 +9,17 @@ module RsyncRecovery
         Database.instance filename: Options.settings[:database]
 
         require_relative 'hashed_file'
-        search   if Options.flagged? :search
-        analyze  if Options.flagged? :analyze
-        merge    if Options.flagged? :merge
+
+        case
+        when Options.flagged?(:search)
+          search
+        when Options.flagged?(:analyze)
+          analyze
+        when Options.flagged?(:merge)
+          merge
+        else
+          fail Options.usage
+        end
 
       rescue RuntimeError => e
         puts e.message
