@@ -11,7 +11,8 @@ For when you accidentally copy your files all over the place and need a cleanup.
 
 Usage:
   #{BINARY} --search <directory> [options]
-  #{BINARY} --analyze                             Not implemented.
+  #{BINARY} --analyze
+  #{BINARY} --drop                                Start from fresh database.
   #{BINARY} --merge <file1.db> <file2.db>         Not implemented.
   #{BINARY} --help, -h                            This, help.
   #{BINARY} --version, -v                         Version info.
@@ -58,7 +59,15 @@ Rsync Recovery.
         @options.parse
         @options.freeze
 
+        enforce_action
         builtins
+      end
+
+      def enforce_action
+        one_of = [ :search, :analyze, :merge ]
+        unless (one_of & flags).any?
+          fail usage
+        end
       end
 
       def builtins

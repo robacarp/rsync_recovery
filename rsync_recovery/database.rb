@@ -22,8 +22,12 @@ module RsyncRecovery
       @db = Sequel.connect "sqlite://#{filename}"
       Sequel::Model.db = @db
       Sequel::Model.plugin :auto_validations
+    end
 
-      schema_load
+    def drop
+      @db.tables.each do |table|
+        @db.drop_table table
+      end
     end
 
     def query sql, *params
