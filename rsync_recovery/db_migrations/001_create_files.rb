@@ -12,6 +12,7 @@ Sequel.migration do
 
       Datetime :created_at
       Datetime :modified_at
+      Datetime :indexed_at
 
       index [:hostname, :path, :name, :sha], unique: true
     end

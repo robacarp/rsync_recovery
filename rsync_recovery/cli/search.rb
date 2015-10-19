@@ -12,21 +12,27 @@ module RsyncRecovery
           searcher.search directory: Options.references[0]
 
           reprint 'Indexing...'
-          count = duplicate = 0
+          saved = failed = skipped = 0
           searcher.files.each do |file|
             reprint "Indexing: #{File.join(file.path, file.name)}"
-            file.hash!
-            count += 1
+            file.smart_hash
 
             if file.valid?
-              file.save
+              if file.changed_columns.any? || file.new?
+                file.save
+                saved += 1
+              else
+                skipped += 1
+              end
             else
-              duplicate += 1
+              puts "file is invalid, you should probably take a look around"
+              debugger
+              failed += 1
             end
 
           end
 
-          reprint "Indexed #{count} files. Already indexed #{duplicate} files."
+          reprint "Indexed #{saved} files. Could not index #{failed} files. Skipped #{skipped} files."
         end
 
         def start
