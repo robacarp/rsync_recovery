@@ -13,6 +13,7 @@ module RsyncRecovery
 
           reprint 'Indexing...'
           saved = failed = skipped = 0
+
           searcher.files.each do |file|
             reprint "Indexing: #{File.join(file.path, file.name)}"
 

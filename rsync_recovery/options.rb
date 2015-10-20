@@ -133,7 +133,7 @@ Rsync Recovery.
     end
 
     def validate option
-      @possibilities ||= self.class.usage.scan(/\W-{1,2}[a-z-]+/).map(&:strip).gsub(/-/,'_').gsub(/^_+/,'-')
+      @possibilities ||= self.class.usage.scan(/\W-{1,2}[a-z-]+/).map(&:strip)
 
       if ! @possibilities.include? option
         fail "Invalid option '#{option}'"
@@ -141,7 +141,7 @@ Rsync Recovery.
     end
 
     def flagged? *flags
-      @flags.find do |flag|
+      @flags.any? do |flag|
         flags.include? flag
       end
     end
