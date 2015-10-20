@@ -15,6 +15,13 @@ require_relative 'rsync_recovery/colorizer'
 module RsyncRecovery
   BINARY = 'rs_recovery'
   VERSION = '0.0.1'
+
+  PREFIXES = {
+    1 => :KB,
+    2 => :MB,
+    3 => :GB,
+    4 => :TB
+  }
 end
 
 RsyncRecovery::CLI::Base.run
