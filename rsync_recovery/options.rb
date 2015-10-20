@@ -18,7 +18,8 @@ Usage:
   #{BINARY} --version, -v                         Version info.
 
 Options:
-  --recursive            Not implemented.
+  --no-recurse           Not implemented.
+  --force-rehash         Don't get smart and bypass known files. Rehash everything.
   --data-file=<file.db>  Point to a specific data store. Useful for running the
                          script on several machines. (default: #{BINARY}.db)
 
@@ -26,16 +27,19 @@ Rsync Recovery.
         USAGE
       end
 
+      # options without =
       def flags
         guard
         @options.flags
       end
 
+      # options with =
       def settings
         guard
         @options.settings
       end
 
+      # options which aren't in the doc, eg files
       def references
         guard
         @options.references
@@ -129,7 +133,7 @@ Rsync Recovery.
     end
 
     def validate option
-      @possibilities ||= self.class.usage.scan(/\W-{1,2}[a-z]+/).map(&:strip)
+      @possibilities ||= self.class.usage.scan(/\W-{1,2}[a-z-]+/).map(&:strip).gsub(/-/,'_').gsub(/^_+/,'-')
 
       if ! @possibilities.include? option
         fail "Invalid option '#{option}'"
