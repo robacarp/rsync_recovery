@@ -9,6 +9,7 @@ Sequel.migration do
       String :name
       String :sha
       Integer :size
+      Integer :parent_id
 
       Datetime :created_at
       Datetime :modified_at

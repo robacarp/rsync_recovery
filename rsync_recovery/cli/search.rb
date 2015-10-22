@@ -10,6 +10,7 @@ module RsyncRecovery
 
           reprint 'Building file list...'
           searcher.search directory: Options.references[0]
+          puts "#{searcher.files.length} entries found"
 
           reprint 'Indexing...'
           saved = failed = skipped = 0
