@@ -10,7 +10,11 @@ import (
 var paths []string
 
 func main() {
-	files, err := filepath.Glob("*.rb")
+	path := searchPath()
+
+  fmt.Printf("Indexing: %v\n", path)
+
+	files, err := filepath.Glob(path)
 	if err != nil {
 		fmt.Println("glob fail, move along")
 		return
