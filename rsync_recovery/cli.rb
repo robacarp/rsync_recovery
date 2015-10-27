@@ -19,6 +19,7 @@ module RsyncRecovery
 
         # Load up ORM
         require_relative 'hashed_file'
+        require_relative 'edge'
 
         # Follow orders
         Search.search    if Options.flagged? :search

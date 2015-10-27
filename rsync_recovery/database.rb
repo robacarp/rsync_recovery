@@ -25,7 +25,8 @@ module RsyncRecovery
     end
 
     def drop
-      @db.tables.each do |table|
+      # HACK HACK HACK :|
+      @db.tables.sort.each do |table|
         @db.drop_table table
       end
     end

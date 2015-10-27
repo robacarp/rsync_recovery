@@ -2,7 +2,6 @@ module RsyncRecovery
   class HashedFile < Sequel::Model
     class << self
       def from_path path, hostname: nil, parent: nil
-        debugger if parent
         path = File.absolute_path path
         type = File.ftype path
         name = File.basename path
@@ -30,12 +29,20 @@ module RsyncRecovery
           file.size        = File.size?(path)
         end
 
+        file.save
+
+        if parent
+          Edge.create parent: parent, child: file
+        end
+
         file
       rescue Errno::ENOENT => e
         puts path
         raise e
       end
     end
+
+    one_to_many :edges
 
     def validate
       super
