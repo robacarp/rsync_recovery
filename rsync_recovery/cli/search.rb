@@ -13,33 +13,23 @@ module RsyncRecovery
           puts "#{searcher.files.length} entries found"
 
           reprint 'Indexing...'
-          saved = failed = skipped = 0
+          states = {}
 
-          searcher.files.each do |file|
+          searcher.hash_files(force: Options.flagged?(:force_rehash)) do |file, state|
             reprint "Indexing: #{File.join(file.path, file.name)}"
 
-            if Options.flagged? :force_rehash
-              file.hash!
-            else
-              file.smart_hash
-            end
+            states[state] ||= 0
+            states[state] += 1
 
-            if file.valid?
-              if file.changed_columns.any? || file.new?
-                file.save
-                saved += 1
-              else
-                skipped += 1
-              end
-            else
+            unless file.valid?
               puts "file is invalid, you should probably take a look around"
               debugger
-              failed += 1
             end
-
           end
 
-          reprint "Indexed #{saved} files. Could not index #{failed} files. Skipped #{skipped} files."
+          # reprint "Indexed #{saved} files. Could not index #{failed} files. Skipped #{skipped} files."
+          reprint "Indexed a bunch of files:"
+          pp states.inspect
         end
 
         def start
@@ -47,10 +37,14 @@ module RsyncRecovery
         end
 
         def reprint *args
-          print "\0338" # restore cursor position
-          print "\0337" # save cursor position
-          print "\033[2K" # clear line from cursor
-          print *args
+          if Options.flagged?(:debug)
+            puts *args
+          else
+            print "\0338" # restore cursor position
+            print "\0337" # save cursor position
+            print "\033[2K" # clear line from cursor
+            print *args
+          end
         end
       end
     end

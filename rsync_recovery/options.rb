@@ -19,6 +19,7 @@ Usage:
 
 Options:
   --no-recurse           Not implemented.
+  --debug                Be more verbose.
   --force-rehash         Don't get smart and bypass known files. Rehash everything.
   --data-file=<file.db>  Point to a specific data store. Useful for running the
                          script on several machines. (default: #{BINARY}.db)
