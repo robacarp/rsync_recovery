@@ -80,7 +80,7 @@ module RsyncRecovery
     end
 
     def hash_folder
-      return false unless children.all? { |file| file.sha }
+      return false unless children.all? { |file| file.reload; file.sha }
       data = children.map(&:sha).join("\n")
       self.sha = Digest::SHA2.hexdigest(data)
       true

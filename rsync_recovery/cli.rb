@@ -9,6 +9,7 @@ module RsyncRecovery
   module CLI
     class Base
       def self.run
+        start_time = Time.now
         # Boot
         Options.parse
         Database.instance filename: Options.settings[:database]
@@ -26,6 +27,8 @@ module RsyncRecovery
         Analyze.analyze  if Options.flagged? :analyze
         merge            if Options.flagged? :merge
 
+        end_time = Time.now
+        puts "Run time: #{end_time - start_time}s"
       rescue RuntimeError => e
         puts e.message
       end

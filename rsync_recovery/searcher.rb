@@ -30,8 +30,6 @@ module RsyncRecovery
 
     def hash_files(force: false)
       @unhashed = @files.dup.shuffle
-      last_length = nil
-      dup_count = 0
 
       while @unhashed.any? do
         file = @unhashed.pop
@@ -47,6 +45,11 @@ module RsyncRecovery
           else
             state = :already_indexed
           end
+        end
+
+        unless did_hash
+          @unhashed.unshift file
+          next
         end
 
         if file.valid? && ( file.changed_columns.any? || file.new? )

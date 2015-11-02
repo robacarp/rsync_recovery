@@ -29,7 +29,8 @@ module RsyncRecovery
 
           # reprint "Indexed #{saved} files. Could not index #{failed} files. Skipped #{skipped} files."
           reprint "Indexed a bunch of files:"
-          pp states.inspect
+          pp states
+          puts 'bye'
         end
 
         def start
