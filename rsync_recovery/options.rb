@@ -28,27 +28,34 @@ Rsync Recovery.
         USAGE
       end
 
+      def defaults
+        [
+          Option.new(text: 'recursive=true'),
+          Option.new(text: "database").tap {|o| o.references << "#{BINARY}.db"}
+        ]
+      end
+
       # options without =
       def flags
         guard
-        @options.flags
+        @instance.flags
       end
 
       # options with =
       def settings
         guard
-        @options.settings
+        @instance.settings
       end
 
       # options which aren't in the doc, eg files
       def references
         guard
-        @options.references
+        @instance.references
       end
 
       def flagged? name
         guard
-        @options.flagged? name
+        @instance.flagged? name
       end
 
       def guard
@@ -58,14 +65,14 @@ Rsync Recovery.
       end
 
       def parse
-        return @options if @options
+        return @instance if @instance
 
-        @options = new
-        @options.parse
-        @options.freeze
+        @instance = new
+        @instance.parse
+        @instance.freeze
 
-        enforce_action
-        builtins
+        # enforce_action
+        # builtins
       end
 
       def enforce_action
@@ -86,65 +93,41 @@ Rsync Recovery.
       end
     end
 
-    attr_reader :flags, :settings, :references
-
     def initialize
-      @flags = []
-      @references = []
-      @settings = {
-        recursive: 'true',
-        database: "#{BINARY}.db"
-      }
+      @options = []
     end
 
     def parse
       ARGV.each do |arg|
         if arg[0] == '-'
-          if arg.index('=')
-            parse_setter arg
-          else
-            parse_flag arg
-          end
+          @options << Option.parse(arg)
+        elsif @options.any?
+          @options.last.references << arg
         else
-          @references << arg
+          fail "No option given for reference #{arg}"
         end
+
+        validate @options.last
       end
-    end
-
-    def freeze
-      @flags.freeze
-      @settings.freeze
-      @references.freeze
-    end
-
-    def parse_setter arg
-      key, value = arg.split('=', 2)
-      key = key.gsub(/-/,' ').strip
-      validate key
-      @settings[key] = value
-    end
-
-    def parse_flag arg
-      validate arg
-      @flags << symbolize(arg)
-    end
-
-    def symbolize str
-      str.gsub(/-/,' ').strip.gsub(/ /,'_').to_sym
     end
 
     def validate option
       @possibilities ||= self.class.usage.scan(/\W-{1,2}[a-z-]+/).map(&:strip)
 
-      if ! @possibilities.include? option
-        fail "Invalid option '#{option}'"
+      if ! @possibilities.include? option.name
+        fail "Invalid option '#{option.name}'"
       end
     end
 
     def flagged? *flags
-      @flags.any? do |flag|
-        flags.include? flag
-      end
+      @options.select {|opt| opt.type == :flag}
+              .any? do |flag|
+                flags.include? flag
+              end
+    end
+
+    def setting name
+      @options.find { |opt| opt.name == name }
     end
   end
 end
