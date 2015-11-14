@@ -10,12 +10,12 @@ Rsync Recovery.
 For when you accidentally copy your files all over the place and need a cleanup.
 
 Usage:
-  #{BINARY} --search <directory> [options]
-  #{BINARY} --analyze
-  #{BINARY} --drop                                Start from fresh database.
-  #{BINARY} --merge <file1.db> <file2.db>         Not implemented.
-  #{BINARY} --help, -h                            This, help.
-  #{BINARY} --version, -v                         Version info.
+  --search <directory> [options]
+  --analyze
+  --drop                                Start from fresh database.
+  --merge <file1.db> <file2.db>         Not implemented.
+  --help, -h                            This, help.
+  --version, -v                         Version info.
 
 Options:
   --no-recurse           Not implemented.
@@ -30,38 +30,9 @@ Rsync Recovery.
 
       def defaults
         [
-          Option.new(text: 'recursive=true'),
-          Option.new(text: "database").tap {|o| o.references << "#{BINARY}.db"}
+          Option.new(text: '--recursive'),
+          Option.new(text: "--database=#{BINARY}.db")
         ]
-      end
-
-      # options without =
-      def flags
-        guard
-        @instance.flags
-      end
-
-      # options with =
-      def settings
-        guard
-        @instance.settings
-      end
-
-      # options which aren't in the doc, eg files
-      def references
-        guard
-        @instance.references
-      end
-
-      def flagged? name
-        guard
-        @instance.flagged? name
-      end
-
-      def guard
-        if ! defined? @options
-          raise RuntimeError, 'CLI Options not parsed yet'
-        end
       end
 
       def parse
@@ -93,41 +64,51 @@ Rsync Recovery.
       end
     end
 
+    attr_reader :options
+
     def initialize
-      @options = []
+      @options = self.class.defaults
     end
 
     def parse
       ARGV.each do |arg|
         if arg[0] == '-'
           @options << Option.parse(arg)
+          validate @options.last
         elsif @options.any?
           @options.last.references << arg
         else
           fail "No option given for reference #{arg}"
         end
-
-        validate @options.last
       end
     end
 
     def validate option
       @possibilities ||= self.class.usage.scan(/\W-{1,2}[a-z-]+/).map(&:strip)
 
-      if ! @possibilities.include? option.name
+      match = @possibilities.index {|name| option.match name}
+
+      unless match
         fail "Invalid option '#{option.name}'"
       end
     end
 
-    def flagged? *flags
-      @options.select {|opt| opt.type == :flag}
-              .any? do |flag|
-                flags.include? flag
-              end
+    def flagged? *search
+      flags.any? do |flag|
+        search.include? flag.name
+      end
+    end
+
+    def flags
+      @options.select {|o| o.type == :flag }
+    end
+
+    def settings
+      @options.select {|o| o.type == :setting }
     end
 
     def setting name
-      @options.find { |opt| opt.name == name }
+      @options.find { |opt| opt.match name }
     end
   end
 end

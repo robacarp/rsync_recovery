@@ -10,15 +10,15 @@ module RsyncRecovery
     attr_accessor :name, :type, :references, :text
     TYPES = [:flag, :setting]
 
-    def initialize(text:)
+    def initialize(text:, references:[])
       @text = text
-      @references = []
+      @references = references
 
       parse
     end
 
     def parse
-      if option_text.index('=')
+      if @text.index('=')
         @type = :setting
         parse_setting
       else
@@ -27,17 +27,28 @@ module RsyncRecovery
       end
     end
 
+    def match text
+      @name == symbolize(text)
+    end
+
+    def value
+      @references.last
+    end
+
     private
     def parse_setting
-      key, value = arg.split('=', 2)
+      key, value = @text.split('=', 2)
       key = key.gsub(/-/,' ').strip
+      @name = symbolize key
+      @references << value
     end
 
     def parse_flag
-      @name = symbolize(arg)
+      @name = symbolize(@text)
     end
 
     def symbolize str
+      return str if str.kind_of? Symbol
       str.gsub(/-/,' ').strip.gsub(/ /,'_').to_sym
     end
   end

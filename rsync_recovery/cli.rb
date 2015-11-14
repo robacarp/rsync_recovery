@@ -11,11 +11,12 @@ module RsyncRecovery
       def self.run
         start_time = Time.now
         # Boot
-        Options.parse
-        Database.instance filename: Options.settings[:database]
+        options = Options.parse
+        options.setting :database
+        Database.instance filename: options.setting(:database).value
 
         # Database schema wrangling
-        Drop.drop        if Options.flagged? :drop
+        Drop.drop        if options.flagged? :drop
         Database.instance.schema_load
 
         # Load up ORM
@@ -23,9 +24,9 @@ module RsyncRecovery
         require_relative 'edge'
 
         # Follow orders
-        Search.search    if Options.flagged? :search
-        Analyze.analyze  if Options.flagged? :analyze
-        merge            if Options.flagged? :merge
+        Search.new(options).search    if options.flagged? :search
+        Analyze.new(options).analyze  if options.flagged? :analyze
+        merge            if options.flagged? :merge
 
         end_time = Time.now
         puts "Run time: #{end_time - start_time}s"
