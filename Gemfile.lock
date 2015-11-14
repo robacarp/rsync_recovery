@@ -1,6 +1,8 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    minitest (5.8.2)
+    parallel (1.6.1)
     sequel (4.27.0)
     sqlite3 (1.3.10)
 
@@ -8,6 +10,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  minitest
+  parallel
   sequel
   sqlite3
 

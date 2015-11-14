@@ -2,8 +2,8 @@ module RsyncRecovery
   class Option
 
     class << self
-      def parse option_text
-        new(text: option_text)
+      def parse option_text, references
+        new(text: option_text, references: references)
       end
     end
 

@@ -1,96 +1,70 @@
 module RsyncRecovery
   class Options
     # hacky docopty class because docopt wasn't working.
-    # report bugs to 
-    class << self
-      def usage
-        <<-USAGE
-Rsync Recovery.
-
-For when you accidentally copy your files all over the place and need a cleanup.
-
-Usage:
-  --search <directory> [options]
-  --analyze
-  --drop                                Start from fresh database.
-  --merge <file1.db> <file2.db>         Not implemented.
-  --help, -h                            This, help.
-  --version, -v                         Version info.
-
-Options:
-  --no-recurse           Not implemented.
-  --debug                Be more verbose.
-  --force-rehash         Don't get smart and bypass known files. Rehash everything.
-  --data-file=<file.db>  Point to a specific data store. Useful for running the
-                         script on several machines. (default: #{BINARY}.db)
-
-Rsync Recovery.
-        USAGE
-      end
-
-      def defaults
-        [
-          Option.new(text: '--recursive'),
-          Option.new(text: "--database=#{BINARY}.db")
-        ]
-      end
-
-      def parse
-        return @instance if @instance
-
-        @instance = new
-        @instance.parse
-        @instance.freeze
-
-        builtins
-        enforce_action
-
-        @instance
-      end
-
-      def enforce_action
-        unless @instance.flagged? *[ :search, :analyze, :merge ]
-          fail usage
-        end
-      end
-
-      def builtins
-        if @instance.flagged? :help, :h
-          fail usage
-        end
-
-        if @instance.flagged? :version, :v
-          fail "#{BINARY} #{VERSION}"
-        end
-      end
-    end
-
+    # report bugs to /dev/null
     attr_reader :options
 
-    def initialize
-      @options = self.class.defaults
+    def initialize(usage:, defaults:)
+      @usage = usage
+      @defaults = defaults.dup
+      reset
     end
 
-    def parse
-      ARGV.each do |arg|
-        if arg[0] == '-'
-          @options << Option.parse(arg)
-          validate @options.last
-        elsif @options.any?
-          @options.last.references << arg
+    def parse argv
+      unparsed = argv.dup
+      matched = []
+      while unparsed.any?
+        opt = unparsed.shift
+        if opt[0] == '-'
+          matched.push opt
         else
-          fail "No option given for reference #{arg}"
+          ref = opt
+          opt = matched.pop
+          opt = Array(opt)
+          opt.push ref
+          matched.push opt
         end
       end
+
+     matched.each do |opt|
+        option = parse_arg *opt
+        validate option
+        @options.push option
+      end
+    end
+
+    def reset
+      @options = @defaults.map { |o| parse_arg o }
+    end
+
+    def parse_arg arg, *references
+      opt = Option.parse(arg, references)
+      opt
     end
 
     def validate option
-      @possibilities ||= self.class.usage.scan(/\W-{1,2}[a-z-]+/).map(&:strip)
+      @possibilities ||= @usage.scan(/\W-{1,2}[a-z-]+/).map(&:strip)
 
       match = @possibilities.index {|name| option.match name}
 
       unless match
         fail "Invalid option '#{option.name}'"
+      end
+    end
+
+    def try_to_help
+      if flagged? :help, :h
+        fail @usage
+      end
+
+      if flagged? :version, :v
+        fail "#{BINARY} #{VERSION}"
+      end
+    end
+
+    def enforce_one_of *params
+      unless flagged? *params
+        fail @usage
       end
     end
 

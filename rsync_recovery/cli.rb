@@ -8,11 +8,41 @@ require_relative 'cli/search'
 module RsyncRecovery
   module CLI
     class Base
-      def self.run
+      USAGE = <<-USAGE
+Rsync Recovery.
+
+For when you accidentally copy your files all over the place and need a cleanup.
+
+Usage:
+  --search <directory> [options]
+  --analyze
+  --drop                                Start from fresh database.
+  --merge <file1.db> <file2.db>         Not implemented.
+  --help, -h                            This, help.
+  --version, -v                         Version info.
+
+Options:
+  --no-recurse           Not implemented.
+  --debug                Be more verbose.
+  --force-rehash         Don't get smart and bypass known files. Rehash everything.
+  --data-file=<file.db>  Point to a specific data store. Useful for running the
+                         script on several machines. (default: #{BINARY}.db)
+
+Rsync Recovery.
+      USAGE
+
+      def defaults
+        ['--recursive',"--database=#{BINARY}.db"]
+      end
+
+      def run
         start_time = Time.now
         # Boot
-        options = Options.parse
-        options.setting :database
+        options = Options.new(usage: USAGE, defaults: defaults)
+        options.parse ARGV
+        options.try_to_help
+        options.enforce_one_of :search, :analyze, :merge
+
         Database.instance filename: options.setting(:database).value
 
         # Database schema wrangling
