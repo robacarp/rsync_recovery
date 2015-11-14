@@ -42,23 +42,24 @@ Rsync Recovery.
         @instance.parse
         @instance.freeze
 
-        # enforce_action
-        # builtins
+        builtins
+        enforce_action
+
+        @instance
       end
 
       def enforce_action
-        one_of = [ :search, :analyze, :merge ]
-        unless (one_of & flags).any?
+        unless @instance.flagged? *[ :search, :analyze, :merge ]
           fail usage
         end
       end
 
       def builtins
-        if @options.flagged? :help, :h
+        if @instance.flagged? :help, :h
           fail usage
         end
 
-        if @options.flagged? :version, :v
+        if @instance.flagged? :version, :v
           fail "#{BINARY} #{VERSION}"
         end
       end
