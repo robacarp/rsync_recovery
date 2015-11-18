@@ -3,6 +3,7 @@ GEM
   specs:
     minitest (5.8.2)
     parallel (1.6.1)
+    rake (10.4.2)
     sequel (4.27.0)
     sqlite3 (1.3.10)
 
@@ -12,6 +13,7 @@ PLATFORMS
 DEPENDENCIES
   minitest
   parallel
+  rake
   sequel
   sqlite3
 

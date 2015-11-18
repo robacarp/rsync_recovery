@@ -43,28 +43,18 @@ Rsync Recovery.
         options.try_to_help
         options.enforce_one_of :search, :analyze, :merge
 
-        Database.instance filename: options.setting(:database).value
-
-        # Database schema wrangling
-        Drop.drop        if options.flagged? :drop
-        Database.instance.schema_load
-
-        # Load up ORM
-        require_relative 'hashed_file'
-        require_relative 'edge'
+        Database.connect sqlite_url: "sqlite://#{options.setting(:database)}"
 
         # Follow orders
+        Drop.drop                     if options.flagged? :drop
         Search.new(options).search    if options.flagged? :search
         Analyze.new(options).analyze  if options.flagged? :analyze
-        merge            if options.flagged? :merge
+        # merge            if options.flagged? :merge
 
         end_time = Time.now
         puts "Run time: #{end_time - start_time}s"
       rescue RuntimeError => e
         puts e.message
-      end
-
-      def merge
       end
     end
   end

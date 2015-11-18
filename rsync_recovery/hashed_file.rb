@@ -2,6 +2,7 @@ module RsyncRecovery
   class HashedFile < Sequel::Model
     class << self
       def from_path path, hostname: nil, parent: nil
+        # TODO ensure file exists
         path = File.absolute_path path
         type = File.ftype path
         name = File.basename path

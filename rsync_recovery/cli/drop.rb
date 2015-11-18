@@ -4,7 +4,11 @@ module RsyncRecovery
       class << self
         def drop
           puts "Dropping database"
-          Database.instance.drop
+          Database.connection.tap do |db|
+            db.drop
+            db.schema_load
+          end
+          Database.reconnect_models
         end
       end
     end
