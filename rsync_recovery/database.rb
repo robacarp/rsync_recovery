@@ -4,11 +4,23 @@ require 'sequel'
 
 module RsyncRecovery
   class Database
-    attr_reader :db, :filename
+    attr_reader :db
 
     class << self
-      def instance filename: nil
-        @connection ||= new filename: filename
+      def connect(sqlite_url:)
+        @connection ||= new sqlite_url
+        load_models
+        @connection
+      end
+
+      def load_models
+        require_relative 'rsync_recovery/hashed_file'
+        require_relative 'rsync_recovery/edge'
+      end
+
+      def connection
+        fail 'No database connection established' unless @connection
+        @connection
       end
 
       def query *params
@@ -16,10 +28,10 @@ module RsyncRecovery
       end
     end
 
-    def initialize(filename: 'test.db')
-      @filename = filename
+    def initialize(url: 'test.db')
+      @url = url
 
-      @db = Sequel.connect "sqlite://#{filename}"
+      @db = Sequel.connect @url
       Sequel::Model.db = @db
       Sequel::Model.plugin :auto_validations
     end
@@ -41,7 +53,7 @@ module RsyncRecovery
     end
 
     def inspect
-      "<SQLite3 #{@filename}>"
+      "<SQLite3 #{@url}>"
     end
   end
 end

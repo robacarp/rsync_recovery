@@ -35,6 +35,10 @@ module RsyncRecovery
       @references.last
     end
 
+    def to_s
+      value
+    end
+
     private
     def parse_setting
       key, value = @text.split('=', 2)
