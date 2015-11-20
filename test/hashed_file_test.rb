@@ -11,6 +11,5 @@ class HashedFileTest < Minitest::Test
     file = RsyncRecovery::HashedFile.from_path 'test/resources/one/one'
     assert file.kind_of?(RsyncRecovery::HashedFile)
     assert file.type == 'file'
-    debugger
   end
 end
